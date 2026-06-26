@@ -48,6 +48,10 @@ def User_Disconnect(*args):
 
 def Request_History_Bar_Data(*args):
     """
+    [command] [symbolname] [year] [month]
+    eg: bar btcusd 2026 05
+    Get BRCUSD Year 2026 May whole month data
+
     Give symbol name like this "btcusd", "ethusd"
     Also i tested with 2 weeks, 3 weeks, the request ok woh lol
     I really dk what is the maximum limit per request for MT5
@@ -110,10 +114,11 @@ def Request_History_Bar_Data(*args):
 
     with open(write_to_file, "a", newline="") as f:
         writer = csv.writer(f)
+        # Got this from https://www.mql5.com/en/docs/python_metatrader5/mt5copyratesrange_py
         writer.writerow(["time", "open", "high", "low", "close", "tick_volume", "spread", "real_volume"])
         for all_bar in all_bars:
             for bar in all_bar:
-                    writer.writerow(bar)
+                writer.writerow(bar)
     print(f"Wrote history bar data to {write_to_file}")
 
 defined_commands = {
