@@ -57,6 +57,10 @@ def Request_History_Bar_Data(*args):
     I really dk what is the maximum limit per request for MT5
     But if i put 1 week, average array received is 10k, if i put 2 weeks 3 weeks,
     can go up to 20k 30k, also ok lol
+
+    The unix timestamp after you request, starts at hour 1 and ends at mont end + 1 hour too
+    I dk why but who cares
+    if you request continueous month, the unix time stamp continuous also so no need care
     """
     required_arguments = 0
     if len(args) < required_arguments:
