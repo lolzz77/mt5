@@ -58,9 +58,13 @@ def Request_History_Bar_Data(*args):
     But if i put 1 week, average array received is 10k, if i put 2 weeks 3 weeks,
     can go up to 20k 30k, also ok lol
 
-    The unix timestamp after you request, starts at hour 1 and ends at mont end + 1 hour too
-    I dk why but who cares
-    if you request continueous month, the unix time stamp continuous also so no need care
+    If you see that when you request for hsitory bar, and only get 1 bar
+    Check your MT5 desktop, scroll to the left see how far it goes
+    Apparently the API only able to retrieve whatever your MT5 desktop can see
+    Maybe 1 option is go to MT5 desktop -> Tools -> Options -> Charts -> Max bars in chart -> Choose Unlimited
+    After that, right click on chart -> Refresh
+    Then, press "Home" to go to the earliest charts you can see
+    So, still same lol, no further bars shown, welp, rips
     """
     required_arguments = 0
     if len(args) < required_arguments:
@@ -76,9 +80,9 @@ def Request_History_Bar_Data(*args):
     timeframe = mt5.TIMEFRAME_M1
 
     # Start / end of month (timezone aware)
-    from_dt = datetime(year, month, 1, 0, 0, 0, tzinfo=GlobalVar.g_my_timezone)
+    from_dt = GlobalVar.g_my_timezone.localize(datetime(year, month, 1))
     last_day = calendar.monthrange(year, month)[1]
-    to_dt = datetime(year, month, last_day, 23, 59, 59, tzinfo=GlobalVar.g_my_timezone)
+    to_dt = GlobalVar.g_my_timezone.localize(datetime(year, month, last_day, 23, 59, 59))
 
     # build chunks (1 week)
     chunks = []
