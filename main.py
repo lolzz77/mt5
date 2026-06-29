@@ -65,6 +65,12 @@ def Request_History_Bar_Data(*args):
     After that, right click on chart -> Refresh
     Then, press "Home" to go to the earliest charts you can see
     So, still same lol, no further bars shown, welp, rips
+
+    Btw, the code actually just copy from the MT5 logged in on your desktop
+    Hence, the timezone also follow desktop one, cannot contorl
+    MT5 desktop, the timezone, cannot modify, it was specified by your broker
+    So you will notice the UNIX time macam off when you convert
+    i thnk the correct timezone to use is UTC, but i dont care lah
     """
     required_arguments = 0
     if len(args) < required_arguments:
