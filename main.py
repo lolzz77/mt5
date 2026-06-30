@@ -65,6 +65,7 @@ def Request_History_Bar_Data(*args):
     After that, right click on chart -> Refresh
     Then, press "Home" to go to the earliest charts you can see
     So, still same lol, no further bars shown, welp, rips
+    Update: Now it works lol, after i open my PC next day, now it goes back all the way to 2018 wow
 
     Btw, the code actually just copy from the MT5 logged in on your desktop
     Hence, the timezone also follow desktop one, cannot contorl
@@ -100,7 +101,7 @@ def Request_History_Bar_Data(*args):
         chunks.append((current_start, current_end))
         current_start = current_end + timedelta(seconds=1)
 
-    all_bars = []
+    monthly = []
     for dt_from, dt_to in chunks:
         print(f"Requesting Symbol:{symbol}, from:{dt_from}, to:{dt_to}")
 
@@ -116,23 +117,29 @@ def Request_History_Bar_Data(*args):
             continue
 
         print(f"Chunk received: {len(rates)} bars")
-        all_bars.append(rates)
+        monthly.append(rates)
 
-    if all_bars:
-        merged = np.concatenate(all_bars)
-        print("Total bars:", len(merged))
+    merged = np.concatenate(monthly)
+    print("Total bars:", len(merged))
 
     write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
 
     os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
+    os.makedirs(GlobalVar.GENERATED_PATH + "weekly/", exist_ok=True)
 
-    with open(write_to_file, "a", newline="") as f:
+    with open(write_to_file, "w", newline="") as f:
         writer = csv.writer(f)
         # Got this from https://www.mql5.com/en/docs/python_metatrader5/mt5copyratesrange_py
         writer.writerow(["time", "open", "high", "low", "close", "tick_volume", "spread", "real_volume"])
-        for all_bar in all_bars:
-            for bar in all_bar:
-                writer.writerow(bar)
+        for week_no, weekly in enumerate(monthly, start=1):
+            # Write into weekly
+            write_to_file_weekly = GlobalVar.GENERATED_PATH + "weekly/" + filename + "-" + f"{week_no:02d}" + ".csv"
+            with open(write_to_file_weekly, "w", newline="") as f:
+                writer_weekly = csv.writer(f)
+                writer_weekly.writerow(["time", "open", "high", "low", "close", "tick_volume", "spread", "real_volume"])
+                for bar in weekly:
+                    writer_weekly.writerow(bar)
+                    writer.writerow(bar)
     print(f"Wrote history bar data to {write_to_file}")
 
 defined_commands = {
