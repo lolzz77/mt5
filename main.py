@@ -1,7 +1,7 @@
 import MetaTrader5 as mt5
 from globalpy import GlobalVar
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import threading
 import calendar
 import numpy as np
@@ -46,6 +46,55 @@ def User_Disconnect(*args):
     mt5.shutdown()
     print(f"User_Disconnect: Program Exitted.")
 
+def Request_History_Bar_Data_Days(*args):
+    """
+    Get historic data in days
+    """
+    required_arguments = 1
+    if len(args) < required_arguments:
+        print(f"Missing arguments, required: {required_arguments}")
+        return
+
+    symbol = args[0]
+    symbol = symbol.upper()
+
+    timeframe = mt5.TIMEFRAME_M1
+
+    # 1 day has 1440 minutes, get 2 days bah
+    number_of_candles_to_request = 1440 *2
+    print(f"Requesting Symbol:{symbol}, No of Candles:{number_of_candles_to_request}")
+
+    # pull 1440 candles, 1 day of 1 minute candles
+    rates = mt5.copy_rates_from_pos(
+        symbol,
+        timeframe,
+        0,
+        number_of_candles_to_request
+    )
+
+    print(f"Received: {len(rates)} bars")
+
+    # Get timestamp, convert to UTC+8, and put into filename
+    timestamp = rates[0][0]
+    filename = datetime.fromtimestamp(
+        timestamp,
+        timezone.utc
+        ).astimezone(
+            timezone(timedelta(hours=8))
+        ).strftime("%Y-%m-%d-%H-%M-%S")
+
+    write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
+    os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
+
+    with open(write_to_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        # Got this from https://www.mql5.com/en/docs/python_metatrader5/mt5copyratesrange_py
+        writer.writerow(["time", "open", "high", "low", "close", "tick_volume", "spread", "real_volume"])
+        for bar in rates:
+            writer.writerow(bar)
+    print(f"Wrote history bar data to {write_to_file}")
+
+
 def Request_History_Bar_Data(*args):
     """
     [command] [symbolname] [year] [month]
@@ -72,8 +121,12 @@ def Request_History_Bar_Data(*args):
     MT5 desktop, the timezone, cannot modify, it was specified by your broker
     So you will notice the UNIX time macam off when you convert
     i thnk the correct timezone to use is UTC, but i dont care lah
+    My broker is using UTC+3 timezone lah, but it will change when daylight saving comes lol
+    Ask ChatGPT how to handle bah.
+    But tho, got 1 method, use copy_rates_from_pos instead, it will pull number of candles
+    1 day has 1440 minutes, just pull 1440 candle for each day
     """
-    required_arguments = 0
+    required_arguments = 3
     if len(args) < required_arguments:
         print(f"Missing arguments, required: {required_arguments}")
         return
@@ -145,7 +198,8 @@ def Request_History_Bar_Data(*args):
 defined_commands = {
     "help": (showHelp,"Show Help"),
     "qq": (User_Disconnect,"Disconnect, terminate script"),
-    "bar": (Request_History_Bar_Data, "Get Historic Bar Data")
+    "bar": (Request_History_Bar_Data, "Get Historic Bar Data"),
+    "day": (Request_History_Bar_Data_Days, "Get historical bar data for past 3 days"),
 }
 
 def executeUserCommand():
