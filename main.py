@@ -13,19 +13,20 @@ if not mt5.initialize():
 
 # For MT5, if your desktop already logged in, then usually you dont need to login
 # And if already logged in, account_info() should have infos
-ACCOUNT = 12345678
-PASSWORD = "password"
-SERVER = "Broker-Server"
+from dotenv import load_dotenv
+load_dotenv()
+
 if mt5.account_info() is None:
     print("Logging in...")
     if not mt5.login(
-        ACCOUNT,
-        password=PASSWORD,
-        server=SERVER
+        os.getenv('ACCOUNT_NUMBER'),
+        password=os.getenv('PASSWORD'),
+        server=os.getenv('SERVER_NAME')
     ):
         raise RuntimeError(mt5.last_error())
 
-print("MT5 API is ready.")
+print(f"Account Info: {mt5.account_info()}")
+print(f"MT5 API is ready.")
 
 def showHelp(*args):
     required_arguments = 0
@@ -49,27 +50,62 @@ def User_Disconnect(*args):
 def Request_History_Bar_Data_Days(*args):
     """
     Get historic data in days
+    
+    2nd argument timeframe input:
+    m1
+    m5
+    m15
+    m30
+    h1
+    h4
+    D
+    W
+    M
     """
-    required_arguments = 1
+    required_arguments = 2
     if len(args) < required_arguments:
         print(f"Missing arguments, required: {required_arguments}")
         return
 
-    symbol = args[0]
+    symbol, user_input_timeframe = args[0], args[1]
     symbol = symbol.upper()
 
-    timeframe = mt5.TIMEFRAME_M1
+    number_of_trendbar = 0
+    timeframe = None
+    if user_input_timeframe == "m1":
+        number_of_trendbar = 600
+        timeframe = mt5.TIMEFRAME_M1
+    elif user_input_timeframe == "m5":
+        number_of_trendbar = 200
+        timeframe = mt5.TIMEFRAME_M5
+    elif user_input_timeframe == "m15":
+        number_of_trendbar = 100
+        timeframe = mt5.TIMEFRAME_M15
+    elif user_input_timeframe == "m30":
+        number_of_trendbar = 100
+        timeframe = mt5.TIMEFRAME_M30
+    elif user_input_timeframe == "h1":
+        number_of_trendbar = 100
+        timeframe = mt5.TIMEFRAME_H1
+    elif user_input_timeframe == "h4":
+        number_of_trendbar = 50
+        timeframe = mt5.TIMEFRAME_H4
+    elif user_input_timeframe == "D":
+        number_of_trendbar = 100
+        timeframe = mt5.TIMEFRAME_D1
+    else:
+        print(f"Invalid timeframe, default to M1")
+        number_of_trendbar = 600
+        timeframe = mt5.TIMEFRAME_M1
 
-    # 1 day has 1440 minutes, get 2 days bah
-    number_of_candles_to_request = 1440 *2
-    print(f"Requesting Symbol:{symbol}, No of Candles:{number_of_candles_to_request}")
+    print(f"Requesting Symbol:{symbol}, No of Candles:{number_of_trendbar}")
 
     # pull 1440 candles, 1 day of 1 minute candles
     rates = mt5.copy_rates_from_pos(
         symbol,
         timeframe,
         0,
-        number_of_candles_to_request
+        number_of_trendbar
     )
 
     print(f"Received: {len(rates)} bars")
