@@ -95,6 +95,7 @@ def Request_History_Bar_Data_Days(*args):
         timeframe = mt5.TIMEFRAME_D1
     else:
         print(f"Invalid timeframe, default to M1")
+        user_input_timeframe = "m1"
         number_of_trendbar = 600
         timeframe = mt5.TIMEFRAME_M1
 
@@ -112,14 +113,16 @@ def Request_History_Bar_Data_Days(*args):
 
     # Get timestamp, convert to UTC+8, and put into filename
     timestamp = rates[0][0]
-    filename = datetime.fromtimestamp(
+    filename_timestamp = datetime.fromtimestamp(
         timestamp,
         timezone.utc
         ).astimezone(
             timezone(timedelta(hours=8))
         ).strftime("%Y-%m-%d-%H-%M-%S")
 
-    write_to_file = GlobalVar.GENERATED_PATH + filename + ".csv"
+    filename = symbol + "-" + user_input_timeframe + "-" + filename_timestamp + ".csv"
+
+    write_to_file = GlobalVar.GENERATED_PATH + filename
     os.makedirs(GlobalVar.GENERATED_PATH, exist_ok=True)
 
     with open(write_to_file, "w", newline="") as f:
